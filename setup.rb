@@ -25,13 +25,13 @@ module RedditDB
 		create_tables = <<-SQL
 			CREATE TABLE IF NOT EXISTS 	users(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				user_name  	VARCHAR(64)		NOT NULL,
-				email 	VARCHAR(64)			NOT NULL
+				user_name  	VARCHAR(64)		UNIQUE NOT NULL,
+				email 	VARCHAR(64)			UNIQUE NOT NULL
 				);
 
 			CREATE TABLE IF NOT EXISTS 	stories(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				title  	VARCHAR(128)			NOT NULL,
+				title  	VARCHAR(128)			UNIQUE NOT NULL,
 				user_id	INT					NOT NULL,
 				score 	INT					NOT NULL,
 				contents	TEXT			NOT NULL,
@@ -76,20 +76,28 @@ module RedditDB
 											VALUES (?, ?, ?, ?, ?);"
 
 		(1..10).each do |count|
-			$db.execute(populate_users, [Faker::Name.first_name, Faker::Internet.free_email])
-			$db.execute(populate_stories, [Faker::Lorem.sentence(10), rand(1..100),
-																			rand(0..49), Faker::Lorem.paragraph(2)])
-			$db.execute(populate_comments, [rand(1..100), rand(1..100), rand(1..20),
-																				Faker::Lorem.paragraph(1)])
-			$db.execute(populate_replies, [(count%2 === 0) ? rand(1..100) : nil,
-																			(count%2 === 0) ? nil : rand(1..100),
-																			rand(1..100), rand(1..12), Faker::Lorem.paragraph(1)])
+			begin
+				$db.execute(populate_users, [Faker::Name.first_name, Faker::Internet.free_email])
+				$db.execute(populate_stories, [Faker::Lorem.sentence(10), rand(1..100),
+																				rand(0..49), Faker::Lorem.paragraph(2)])
+				$db.execute(populate_comments, [rand(1..100), rand(1..100), rand(1..20),
+																					Faker::Lorem.paragraph(1)])
+				$db.execute(populate_replies, [(count%2 === 0) ? rand(1..100) : nil,
+																				(count%2 === 0) ? nil : rand(1..100),
+																				rand(1..100), rand(1..12), Faker::Lorem.paragraph(1)])
+			rescue
+				retry
+			end
 		end
 	end
 
 	def self.tester
 		puts "testing..."
 		puts "tables populated! ready to go" if $db.execute("SELECT user_name FROM users LIMIT 5").length == 5
+	end
+
+	def self.test_story?
+		puts $db.execute("SELECT title FROM stories WHERE title = 'test title'")
 	end
 end
 
