@@ -93,4 +93,6 @@ module RedditDB
 	end
 end
 
-RedditDB.reset
+ARGV.each do |command|
+	RedditDB.send(command)
+end
