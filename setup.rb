@@ -96,8 +96,8 @@ module RedditDB
 		puts "tables populated! ready to go" if $db.execute("SELECT user_name FROM users LIMIT 5").length == 5
 	end
 
-	def self.test_story?
-		puts $db.execute("SELECT title FROM stories WHERE title = 'test title'")
+	def self.list_stories
+		puts $db.execute("SELECT title FROM stories")
 	end
 end
 
